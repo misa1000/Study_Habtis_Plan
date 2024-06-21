@@ -11,6 +11,7 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import ymaker.javaweb.studyhabitsplan.server.Intercepter.JwtTokenAdminInterceptor;
 
 /**
  * 配置类，注册web层相关组件
@@ -55,5 +56,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
 
+    }
+    @Autowired
+    JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
+    @Override
+    /**
+     * 注册自定义拦截器
+     *
+     * @param registry
+     */
+    protected void addInterceptors(InterceptorRegistry registry) {
+        log.info("开始注册自定义拦截器...");
+        registry.addInterceptor(jwtTokenAdminInterceptor)
+                .addPathPatterns("/user/**")
+                .addPathPatterns("/studytasks/**")
+                .excludePathPatterns("/user/login");
     }
 }
