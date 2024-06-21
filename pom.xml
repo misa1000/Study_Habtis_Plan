@@ -63,8 +63,22 @@
 			<version>3.0.3</version>
 		</dependency>
 
-
+  
+<!--		jwt功能jar包-->
 		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+<!--		适配于java11以上的jdk版本-->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+ 
+  <dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
 			<version>3.5.5</version>
@@ -93,8 +107,6 @@
 			<artifactId>mybatis-plus-core</artifactId>
 			<version>3.5.5</version>
 		</dependency>
-
-
 	</dependencies>
 
 	<build>
