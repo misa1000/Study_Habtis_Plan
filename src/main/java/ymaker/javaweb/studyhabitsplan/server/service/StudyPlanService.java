@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 import ymaker.javaweb.studyhabitsplan.server.mapper.StudyPlanMapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -52,5 +53,17 @@ public class StudyPlanService implements Study_Plan {
     @Override
     public void updateStudyPlan(StudyPlan studyPlan) {
         studyPlanMapper.updateById(studyPlan);
+    }
+
+    @Override
+    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime) {
+        QueryWrapper<StudyPlan> queryWrapper=new QueryWrapper<>();
+        if(startTime!=null){
+            queryWrapper.ge("deadline",startTime);
+        }
+        if(endTime!=null){
+            queryWrapper.lt("deadline",endTime);
+        }
+        return studyPlanMapper.selectList(queryWrapper);
     }
 }
