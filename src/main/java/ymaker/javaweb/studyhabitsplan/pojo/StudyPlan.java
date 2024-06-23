@@ -22,6 +22,7 @@ public class StudyPlan {
     private LocalDateTime createTime;
     @TableField(value = "update_time",fill = FieldFill.UPDATE)
     private LocalDateTime updateTime;
+    private int status;
 
 
 }
