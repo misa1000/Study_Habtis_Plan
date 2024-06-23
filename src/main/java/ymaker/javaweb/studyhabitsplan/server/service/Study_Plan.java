@@ -3,6 +3,7 @@ package ymaker.javaweb.studyhabitsplan.server.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 
+import java.util.Date;
 import java.util.List;
 
 public interface Study_Plan {
@@ -17,5 +18,6 @@ public interface Study_Plan {
 
     public void updateStudyPlan(StudyPlan studyPlan);
 
+    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime);
 
 }
