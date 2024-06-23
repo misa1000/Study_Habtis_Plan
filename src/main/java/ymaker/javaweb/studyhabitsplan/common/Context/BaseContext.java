@@ -2,17 +2,17 @@ package ymaker.javaweb.studyhabitsplan.common.Context;
 
 public class BaseContext {
 
-    public static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
+    public static ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
-    public static void setCurrentId(Long id) {
-        threadLocal.set(id);
+    public static void setCurrentUsername(String username) {
+        threadLocal.set(username);
     }
 
-    public static Long getCurrentId() {
+    public static String getCurrentUsername() {
         return threadLocal.get();
     }
 
-    public static void removeCurrentId() {
+    public static void removeCurrentUsername() {
         threadLocal.remove();
     }
 

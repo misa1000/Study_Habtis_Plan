@@ -18,7 +18,7 @@ public class Userservice implements UserServiceInter{
     public User login(User user) {
         User q = userMapper.login(user);
         if(q !=null){
-            BaseContext.setCurrentId((long) q.getId());
+            BaseContext.setCurrentUsername(q.getUsername());
         }
         return q;
     }
