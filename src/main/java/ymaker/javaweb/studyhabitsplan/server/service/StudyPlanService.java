@@ -21,7 +21,7 @@ public class StudyPlanService implements Study_Plan {
     }
 
     @Override
-    public List<StudyPlan> getStudyPlans(String content,String topic,Integer priority) {
+    public List<StudyPlan> getStudyPlans(String content,String topic,Integer priority,String username) {
         QueryWrapper<StudyPlan> queryWrapper=new QueryWrapper<>();
         if(content!=null){
             queryWrapper.like("content",content);
@@ -32,6 +32,7 @@ public class StudyPlanService implements Study_Plan {
         if(priority!=null){
             queryWrapper.eq("priority",priority);
         }
+        queryWrapper.eq("username",username);
         return studyPlanMapper.selectList(queryWrapper);
     }
 
@@ -56,7 +57,7 @@ public class StudyPlanService implements Study_Plan {
     }
 
     @Override
-    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime) {
+    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime,String username) {
         QueryWrapper<StudyPlan> queryWrapper=new QueryWrapper<>();
         if(startTime!=null){
             queryWrapper.ge("deadline",startTime);
@@ -64,6 +65,7 @@ public class StudyPlanService implements Study_Plan {
         if(endTime!=null){
             queryWrapper.lt("deadline",endTime);
         }
+        queryWrapper.eq("username",username);
         return studyPlanMapper.selectList(queryWrapper);
     }
 }
