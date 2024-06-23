@@ -9,7 +9,7 @@ import java.util.List;
 public interface Study_Plan {
     public StudyPlan getStudyPlanById(int id);
 
-    public List<StudyPlan> getStudyPlans(String content,String topic,Integer priority);
+    public List<StudyPlan> getStudyPlans(String content,String topic,Integer priority,String username);
 
     public List<StudyPlan> getAllStudyPlan(String username);
 
@@ -18,6 +18,6 @@ public interface Study_Plan {
 
     public void updateStudyPlan(StudyPlan studyPlan);
 
-    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime);
+    public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime,String username);
 
 }
