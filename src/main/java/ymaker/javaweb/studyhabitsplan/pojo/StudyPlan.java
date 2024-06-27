@@ -4,6 +4,7 @@ package ymaker.javaweb.studyhabitsplan.pojo;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,14 +15,17 @@ import java.util.Date;
 public class StudyPlan {
     private int id;
     private String username;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date deadline;
     private String topic;
     private int priority;
     private String content;
     @TableField(value = "create_time",fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
     @TableField(value = "update_time",fill = FieldFill.UPDATE)
-    private LocalDateTime updateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date updateTime;
     private int status;
 
 
