@@ -1,11 +1,8 @@
 package ymaker.javaweb.studyhabitsplan.server.controller;
 
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ymaker.javaweb.studyhabitsplan.common.Context.BaseContext;
 import ymaker.javaweb.studyhabitsplan.common.Result.Result;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
@@ -14,7 +11,8 @@ import ymaker.javaweb.studyhabitsplan.server.service.StudyPlanService;
 import java.util.Date;
 import java.util.List;
 
-@RestController("/studyPlan")
+@RestController()
+@RequestMapping("/studyPlan")
 public class StudyPlanController {
     @Autowired
     StudyPlanService studyPlanService;
@@ -29,6 +27,9 @@ public class StudyPlanController {
     public Result getAllStudyPlans(String username){
         if(null!=username){
             List<StudyPlan> allStudyPlan = studyPlanService.getAllStudyPlan(username);
+            StudyPlan first = allStudyPlan.getFirst();
+            System.out.println(first.getDeadline());
+
             return Result.success(allStudyPlan);
         }else {
             String currentUsername = BaseContext.getCurrentUsername();
