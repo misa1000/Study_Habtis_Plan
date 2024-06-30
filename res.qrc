@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Saved Pictures/Role.png</file>
+        <file>Saved Pictures/Roler.png</file>
+        <file>Saved Pictures/bird.jpg</file>
+        <file>Saved Pictures/cload.jpg</file>
+        <file>Saved Pictures/ice.jpg</file>
+        <file>Saved Pictures/clod2.jpg</file>
+        <file>Saved Pictures/clod3.jpg</file>
+        <file>Saved Pictures/star.jpg</file>
+        <file>Saved Pictures/danzai.jpg</file>
+        <file>Saved Pictures/lan.jpg</file>
+        <file>Saved Pictures/fish.png</file>
+        <file>Saved Pictures/2.jpg</file>
+        <file>Saved Pictures/3.jpg</file>
+        <file>Saved Pictures/4.jpg</file>
+        <file>Saved Pictures/6.jpg</file>
+        <file>Saved Pictures/7.jpg</file>
+        <file>Saved Pictures/8.jpg</file>
+        <file>Saved Pictures/ye.jpg</file>
+        <file>Saved Pictures/5.jpg</file>
+    </qresource>
+</RCC>
