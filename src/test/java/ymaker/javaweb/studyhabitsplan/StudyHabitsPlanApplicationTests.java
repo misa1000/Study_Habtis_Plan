@@ -8,6 +8,7 @@ class StudyHabitsPlanApplicationTests {
 
 	@Test
 	void contextLoads() {
+		long l = now.getTime() - studyPlan.getDeadline().getTime();
 	}
 
 }

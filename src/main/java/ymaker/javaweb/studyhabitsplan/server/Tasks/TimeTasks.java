@@ -28,7 +28,7 @@ public class TimeTasks {
         List<StudyPlan> studyPlanByTime = studyPlanMapperService.getStudyPlanByTime(null, now, currentUsername);
         for (StudyPlan studyPlan : studyPlanByTime) {
 
-            long l = now.getTime() - studyPlan.getDeadline().getTime();//获取到截止时间与当前时间的差值
+            long l = studyPlan.getDeadline().getTime()-now.getTime();//获取到截止时间与当前时间的差值
             switch ((int) l/1000/60){
                 case 30:
                     webSocketServer.sendToAllClient("30m"+studyPlan.getTopic()+"需要复习");
