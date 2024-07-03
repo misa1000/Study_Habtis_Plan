@@ -19,4 +19,5 @@ public interface Study_Plan {
 
     public List<StudyPlan> getStudyPlanByTime(Date startTime,Date endTime,String username);
 
+    public List<StudyPlan> getStudyPlanByStatus(int status);
 }
