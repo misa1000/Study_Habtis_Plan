@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ymaker.javaweb.studyhabitsplan.common.Context.BaseContext;
 import ymaker.javaweb.studyhabitsplan.common.Result.Result;
+import ymaker.javaweb.studyhabitsplan.common.utils.RecommendAlgorithm;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 import ymaker.javaweb.studyhabitsplan.server.service.StudyPlanService;
 
@@ -14,6 +15,8 @@ import java.util.List;
 @RestController()
 @RequestMapping("/studyPlan")
 public class StudyPlanController {
+    @Autowired
+    RecommendAlgorithm recommendAlgorithm;
     @Autowired
     StudyPlanService studyPlanService;
 
@@ -82,6 +85,11 @@ public class StudyPlanController {
     public Result getStudyPlanByStatus(int status){
         List<StudyPlan> studyPlanByStatus = studyPlanService.getStudyPlanByStatus(status);
         return Result.success(studyPlanByStatus);
+    }
+    @GetMapping("/getRecommend")
+    public Result getStudyPlanRecommend(){
+        List<StudyPlan> recommend = recommendAlgorithm.recommend();
+        return Result.success(recommend);
     }
 
 }

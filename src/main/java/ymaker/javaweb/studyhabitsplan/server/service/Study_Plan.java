@@ -1,6 +1,5 @@
 package ymaker.javaweb.studyhabitsplan.server.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 
 import java.util.Date;

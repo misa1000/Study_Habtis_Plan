@@ -15,7 +15,7 @@ public class RecommendAlgorithm {
     StudyPlanService studyPlanService;
     public List<StudyPlan> recommend() {
         String currentUsername = BaseContext.getCurrentUsername();
-        List<StudyPlan> allStudyPlan = studyPlanService.getAllStudyPlan(currentUsername);
+        List<StudyPlan> allStudyPlan = studyPlanService.getStudyPlanByStatus(0);
         List<StudyPlan> oneWeekStudyPlan=new ArrayList<StudyPlan>();//during one week
         List<StudyPlan> outOneWeekStudyPlan=new ArrayList<StudyPlan>();// over one week
         List<StudyPlan> SortedStudyPlan=new ArrayList<StudyPlan>();//设置一个ArrayList用来存放排序以后的计划表
