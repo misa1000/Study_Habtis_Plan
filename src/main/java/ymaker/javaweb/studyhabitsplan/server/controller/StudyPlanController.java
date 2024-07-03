@@ -79,5 +79,9 @@ public class StudyPlanController {
         }
     }
 
+    public Result getStudyPlanByStatus(int status){
+        List<StudyPlan> studyPlanByStatus = studyPlanService.getStudyPlanByStatus(status);
+        return Result.success(studyPlanByStatus);
+    }
 
 }

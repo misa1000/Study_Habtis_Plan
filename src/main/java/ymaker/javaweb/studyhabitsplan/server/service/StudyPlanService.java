@@ -3,6 +3,7 @@ package ymaker.javaweb.studyhabitsplan.server.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ymaker.javaweb.studyhabitsplan.common.Context.BaseContext;
 import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 import ymaker.javaweb.studyhabitsplan.server.mapper.StudyPlanMapper;
 
@@ -66,6 +67,13 @@ public class StudyPlanService implements Study_Plan {
             queryWrapper.lt("deadline",endTime);
         }
         queryWrapper.eq("username",username);
+        return studyPlanMapper.selectList(queryWrapper);
+    }
+
+    public List<StudyPlan> getStudyPlanByStatus(int status){
+        String username= BaseContext.getCurrentUsername();
+        QueryWrapper<StudyPlan> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("username",username).eq("status",status);
         return studyPlanMapper.selectList(queryWrapper);
     }
 }
