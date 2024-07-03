@@ -22,19 +22,20 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `study-plans`;
 CREATE TABLE `study-plans`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键id用于标识学习计划',
-  `username` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '标识创建该计划的用户名称',
-  `deadline` datetime NULL DEFAULT NULL COMMENT '学习计划的截止时间',
-  `topic` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '学习计划主题',
-  `priority` int NULL DEFAULT NULL COMMENT '计划的优先级',
-  `content` char(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '学习计划的主要内容',
-  `create_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '计划的创建时间',
-  `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '计划的修改时间',
-  `status` int NULL DEFAULT NULL COMMENT '完成状态',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `study_plans_pk`(`id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 133931 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
+                                `id` int NOT NULL AUTO_INCREMENT COMMENT '主键id用于标识学习计划',
+                                `username` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '标识创建该计划的用户名称',
+                                `deadline` datetime NULL DEFAULT NULL COMMENT '学习计划的截止时间',
+                                `topic` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '学习计划主题',
+                                `priority` int NULL DEFAULT NULL COMMENT '计划的优先级',
+                                `content` char(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '学习计划的主要内容',
+                                `create_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '计划的创建时间',
+                                `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '计划的修改时间',
+                                `status` int NULL DEFAULT NULL COMMENT '完成状态',
+                                `reminder_time` varchar(255) CHARACTER SET utf16le COLLATE utf16le_general_ci NULL DEFAULT NULL COMMENT '提醒时间',
+                                `finish_time` datetime NULL DEFAULT NULL COMMENT '完成时间',
+                                PRIMARY KEY (`id`) USING BTREE,
+                                UNIQUE INDEX `study_plans_pk`(`id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1212313 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`  (
