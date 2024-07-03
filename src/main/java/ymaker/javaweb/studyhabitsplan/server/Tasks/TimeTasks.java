@@ -9,6 +9,7 @@ import ymaker.javaweb.studyhabitsplan.pojo.StudyPlan;
 import ymaker.javaweb.studyhabitsplan.server.WebSocket.WebSocketServer;
 import ymaker.javaweb.studyhabitsplan.server.service.StudyPlanService;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -47,4 +48,27 @@ public class TimeTasks {
             }
         }
     }
+
+    @Scheduled(cron = "0 * * * * *")
+    public void reminder(){
+        String currentUsername = BaseContext.getCurrentUsername();
+        Date date=new Date();
+        SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        String current = simpleDateFormat.format(date);
+        List<StudyPlan> studyPlanByTime = studyPlanMapperService.getStudyPlanByTime(date, null, currentUsername);
+
+        for (StudyPlan studyPlan:studyPlanByTime) {
+            String[] split = studyPlan.getReminder_time().split("//");
+            for (String s:split) {
+                if(current.equals(s)) {
+                    webSocketServer.sendToAllClient(studyPlan.getTopic()+"需要复习");
+                }
+            }
+
+        }
+
+
+    }
+
+
 }
