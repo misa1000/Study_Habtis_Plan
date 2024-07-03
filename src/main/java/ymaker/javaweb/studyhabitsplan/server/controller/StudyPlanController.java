@@ -79,9 +79,16 @@ public class StudyPlanController {
         }
     }
 
+    @PostMapping("/getByStatus")
     public Result getStudyPlanByStatus(int status){
         List<StudyPlan> studyPlanByStatus = studyPlanService.getStudyPlanByStatus(status);
         return Result.success(studyPlanByStatus);
+    }
+
+    @PostMapping("/getById")
+    public Result getStudyPlanById(int id){
+        StudyPlan studyPlanById = studyPlanService.getStudyPlanById(id);
+        return Result.success(studyPlanById);
     }
 
 }
