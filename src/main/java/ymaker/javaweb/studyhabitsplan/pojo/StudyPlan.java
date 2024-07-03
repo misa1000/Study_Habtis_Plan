@@ -27,6 +27,8 @@ public class StudyPlan {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
     private int status;
+    private String reminder_time;
+    //"yyyy-MM-dd HH:mm//yyyy-MM-dd HH:mm"
 
 
 }
