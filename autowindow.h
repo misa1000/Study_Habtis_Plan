@@ -25,6 +25,10 @@ public:
     {
         this->user = user;
     }
+    User *getUser()
+    {
+        return this->user;
+    }
     void setId(int id)
     {
         this->id = id;
@@ -41,7 +45,7 @@ private slots:
 
 private:
     int mode = 0;
-    int id;
+    int id = 0;
     User *user;
     QUrl url;
     QNetworkRequest request;

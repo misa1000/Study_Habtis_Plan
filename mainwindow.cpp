@@ -77,21 +77,27 @@ void MainWindow::sendGetRequest(const QUrl &requestedUrl)
 }
 
 void MainWindow::onGetRequestFinished(QNetworkReply *reply){
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
-    QJsonObject json = jsonDoc.object();
-    QJsonArray data = json["data"].toArray();
-    QList<StudyPlan> studyPlans;
-    for (QJsonValue it : data) {
-        StudyPlan studyPlan(
-            it["id"].toInt(), it["username"].toString(), it["deadline"].toString(),
-            it["topic"].toString(), it["priority"].toInt(), it["content"].toString(),
-            it["create_time"].toString(), it["update_time"].toString(),
-            it["reminder_time"].toString(), it["finish_time"].toString(),
-            it["status"].toInt()
-        );
-        studyPlans.append(studyPlan);
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200)
+    {
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonObject json = jsonDoc.object();
+        QJsonArray data = json["data"].toArray();
+        QList<StudyPlan> studyPlans;
+        for (QJsonValue it : data) {
+            StudyPlan studyPlan(
+                        it["id"].toInt(), it["username"].toString(), it["deadline"].toString(),
+                    it["topic"].toString(), it["priority"].toInt(), it["content"].toString(),
+                    it["create_time"].toString(), it["update_time"].toString(),
+                    it["reminder_time"].toString(), it["finish_time"].toString(),
+                    it["status"].toInt()
+                    );
+            studyPlans.append(studyPlan);
+        }
+        this->getUser()->setStudyPlans(studyPlans);
+    }else {
+        ;
     }
-    this->getUser()->setStudyPlans(studyPlans);
 }
 
 void MainWindow::updatePage2()
@@ -205,8 +211,10 @@ void MainWindow::editPlan(int id)
     list.at(1)->setText(QString(target->getPriority()));
     list.at(2)->setText(target->getDeadLine());
     if (target->getReminderTime() != NULL)
+    {
         radiobtn->setChecked(true);
         list.at(3)->setText(target->getReminderTime());
+    }
     QTextEdit * textedit = page->findChild<QTextEdit *>();
     textedit->setText(target->getContent());
     QPushButton *btnnew = autoWindow->findChild<QPushButton *>("btnnew");

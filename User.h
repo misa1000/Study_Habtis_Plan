@@ -23,21 +23,11 @@ public:
     }
 
 public:
-    void setStudyPlans(QList<StudyPlan> studyPlans){
-        this->studyPlans = studyPlans;
-    }
-    QString getUsername()
-    {
-        return this->username;
-    }
-    QString getToken()
-    {
-        return this->token;
-    }
-    QList<StudyPlan> getStudyPlans()
-    {
-        return this->studyPlans;
-    }
+    void setStudyPlans(QList<StudyPlan> studyPlans) {this->studyPlans = studyPlans;}
+    void addStudyPlan(StudyPlan studyPlan) {this->studyPlans.append(studyPlan);}
+    QString getUsername() {return this->username;}
+    QString getToken() {return this->token;}
+    QList<StudyPlan> getStudyPlans() {return this->studyPlans;}
 
 private:
     QString username;

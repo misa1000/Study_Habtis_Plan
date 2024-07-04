@@ -80,6 +80,7 @@ void LoginWindow::onPostRequestFinished(QNetworkReply *reply)
     } else {
         QMessageBox::warning(this, "警告", "登录失败，请重新检查用户名和密码是否正确！", QMessageBox::Yes, QMessageBox::Yes);
     }
+    reply->deleteLater();
 }
 
 LoginWindow::~LoginWindow()

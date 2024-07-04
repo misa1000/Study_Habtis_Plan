@@ -19,6 +19,8 @@ AutoWindow::AutoWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->frame->hide();
+    if (this->mode == 0)
+        ui->btnnew->hide();
     connect(ui->btnnew,&QPushButton::clicked,[=](){
         ui->frame->show();
     });
@@ -113,11 +115,11 @@ AutoWindow::AutoWindow(QWidget *parent) :
             QString url = NULL;
             QJsonObject json;
             if (this->mode == 0){
-                url = ROOT"/studyPlan/update";
+                url = ROOT"studyPlan/update";
                 json["id"] = this->id;
             }
             else
-                url = ROOT"/studyPlan/add";
+                url = ROOT"studyPlan/add";
             json["topic"] = topic;
             json["priority"] = priority;
             json["deadline"] = deadline;
@@ -140,16 +142,25 @@ AutoWindow::AutoWindow(QWidget *parent) :
             // 获取要删除的页面（这一步是可选的，因为我们直接使用索引来删除）
             //QWidget * pageToRemove = toolBox->widget(currentIndex);
             // 删除页面
+            if (this->id != 0) {
+                QString url = ROOT"studyPlan/delete";
+                QJsonObject json;
+                json["id"] = this->id;
+                QJsonDocument jsonDoc(json);
+                QByteArray data = jsonDoc.toJson();
+                sendPostRequest(QUrl(url), data);
+            }
             toolBox->removeItem(currentIndex);
         }
             else {
             // 没有选中的选项卡，处理这种情况（如果需要）
-            qDebug()<<"无效代码！！！";
+            QMessageBox::warning(this, "警告", "当前无任务选项！", QMessageBox::Yes, QMessageBox::Yes);
         }
     });
 
     connect(ui->btnReturn, &QPushButton::clicked, [=](){
         MainWindow * mainwindow = new MainWindow();
+        mainwindow->setUser(this->user);
         mainwindow->show();
         this->close();
     });
@@ -157,7 +168,21 @@ AutoWindow::AutoWindow(QWidget *parent) :
     connect(ui->btncheck,&QPushButton::clicked,[=](){
         QMessageBox::StandardButton result = QMessageBox::question(this, "提示", "是否确认完成", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
         if(result ==  QMessageBox::Yes){
-            qDebug()<<"完成";
+            if (this->id != 0) {
+                QString url = ROOT"studyPlan/update";
+                QJsonObject json;
+                json["id"] = this->id;
+                json["status"] = 1;
+                QJsonDocument jsonDoc(json);
+                QByteArray data = jsonDoc.toJson();
+                sendPostRequest(QUrl(url), data);
+                MainWindow * mainwindow = new MainWindow();
+                mainwindow->setUser(this->user);
+                mainwindow->show();
+                this->close();
+            }else {
+                QMessageBox::warning(this, "警告", "当前任务未保存！", QMessageBox::Yes, QMessageBox::Yes);
+            }
         }
     });
 }
@@ -168,6 +193,7 @@ void AutoWindow::sendPostRequest(const QUrl &requestedUrl, const QByteArray &dat
     manager = new QNetworkAccessManager(this);
     request.setUrl(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+    request.setRawHeader("token", user->getToken().toLocal8Bit());
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, [=](){
@@ -179,10 +205,21 @@ void AutoWindow::onPostRequestFinished(QNetworkReply *reply)
 {
     int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status_code == 200) {
-        QMessageBox::information(this, "信息", "保存成功！", QMessageBox::Yes, QMessageBox::Yes);
+        QByteArray replyData = reply->readAll();
+        if (!replyData.isEmpty()) {
+            QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData);
+            QJsonObject json = jsonDoc.object();
+            this->setId(json["id"].toInt());
+            this->setMode(0);
+            ui->btnnew->hide();
+            QMessageBox::information(this, "信息", "保存成功！", QMessageBox::Yes, QMessageBox::Yes);
+        }else{
+            QMessageBox::information(this, "信息", "操作成功！", QMessageBox::Yes, QMessageBox::Yes);
+        }
     } else {
-        QMessageBox::warning(this, "警告", "保存失败！", QMessageBox::Yes, QMessageBox::Yes);
+        QMessageBox::warning(this, "警告", "操作失败！", QMessageBox::Yes, QMessageBox::Yes);
     }
+    reply->deleteLater();
 }
 
 QList<QLineEdit*> AutoWindow :: findAllLineEdits(QWidget *parent) {

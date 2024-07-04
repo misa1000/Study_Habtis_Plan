@@ -80,6 +80,7 @@ void RegisterWindow::onPostRequestFinished(QNetworkReply *reply)
     } else {
         QMessageBox::warning(this, "警告", "注册失败！", QMessageBox::Yes, QMessageBox::Yes);
     }
+    reply->deleteLater();
 }
 
 RegisterWindow::~RegisterWindow()
