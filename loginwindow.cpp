@@ -51,9 +51,6 @@ LoginWindow::LoginWindow(QWidget *parent)
 
 void LoginWindow::sendPostRequest(const QUrl &requestedUrl, const QByteArray &data)
 {
-    MainWindow *mainWindow = new MainWindow();
-    mainWindow->show();
-    this->close();
     url = requestedUrl;
     manager = new QNetworkAccessManager(this);
     request.setUrl(url);
@@ -69,18 +66,61 @@ void LoginWindow::onPostRequestFinished(QNetworkReply *reply)
 {
     int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status_code == 200) {
-        QMessageBox::information(this, "信息", "登录成功！", QMessageBox::Yes, QMessageBox::Yes);
         QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
         QJsonObject json = jsonDoc.object();
-        User user(json["username"].toString(), json["token"].toString());
-        MainWindow * mainwindow = new MainWindow();
-        mainwindow->setUser(&user);
-        mainwindow->show();
-        this->close();
-    } else {
-        QMessageBox::warning(this, "警告", "登录失败，请重新检查用户名和密码是否正确！", QMessageBox::Yes, QMessageBox::Yes);
+        json = json["data"].toObject();
+        if (!json.isEmpty())
+        {
+            user = User(json["username"].toString(), json["token"].toString());
+            QMessageBox::information(this, "信息", "登录成功！", QMessageBox::Yes, QMessageBox::Yes);
+            QString url = ROOT"/studyPlan/getAll";
+            sendGetRequest(QUrl(url));
+        }else {
+            QMessageBox::warning(this, "警告", "登录失败，请重新检查用户名和密码是否正确！", QMessageBox::Yes, QMessageBox::Yes);
+        }
     }
     reply->deleteLater();
+}
+
+void LoginWindow::sendGetRequest(const QUrl &requestedUrl)
+{
+    url = requestedUrl;
+    manager = new QNetworkAccessManager(this);
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("token", user.getToken().toLocal8Bit());
+    reply = manager->get(request);
+    connect(reply, &QNetworkReply::finished, [=](){
+        onGetRequestFinished(reply);
+    });
+}
+
+void LoginWindow::onGetRequestFinished(QNetworkReply *reply){
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200)
+    {
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonObject json = jsonDoc.object();
+        QJsonArray data = json["data"].toArray();
+        QList<StudyPlan> studyPlans;
+        for (QJsonValue it : data) {
+            StudyPlan studyPlan(
+                it["id"].toInt(), it["username"].toString(), it["deadline"].toString(),
+                it["topic"].toString(), it["priority"].toInt(), it["content"].toString(),
+                it["create_time"].toString(), it["update_time"].toString(),
+                it["reminder_time"].toString(), it["finish_time"].toString(),
+                it["status"].toInt()
+            );
+            studyPlans.append(studyPlan);
+        }
+        user.setStudyPlans(&studyPlans);
+        MainWindow * mainwindow = new MainWindow();
+        mainwindow->setUser(this->user);
+        mainwindow->show();
+        this->close();
+    }else {
+        ;
+    }
 }
 
 LoginWindow::~LoginWindow()

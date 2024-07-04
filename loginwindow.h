@@ -17,17 +17,23 @@ public:
     LoginWindow(QWidget *parent = nullptr);
     ~LoginWindow();
 
-    void setUser(User *user)
+    void setUser(User user)
     {
         this->user = user;
     }
+    User getUser()
+    {
+        return this->user;
+    }
     void sendPostRequest(const QUrl &requestedUrl, const QByteArray &data);
+    void sendGetRequest(const QUrl &requestedUrl);
 
 private slots:
     void onPostRequestFinished(QNetworkReply *reply);
+    void onGetRequestFinished(QNetworkReply *reply);
 
 private:
-    User *user;
+    User user;
     QUrl url;
     QNetworkRequest request;
     QNetworkReply *reply;

@@ -19,8 +19,6 @@ AutoWindow::AutoWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->frame->hide();
-    if (this->mode == 0)
-        ui->btnnew->hide();
     connect(ui->btnnew,&QPushButton::clicked,[=](){
         ui->frame->show();
     });
@@ -29,7 +27,7 @@ AutoWindow::AutoWindow(QWidget *parent) :
           QVBoxLayout * vboxlayout = new QVBoxLayout();
 
           QLabel * lab0 = new QLabel("主题");
-          QLineEdit * linewidget0 = new QLineEdit();
+          QLineEdit * linewidget0 = new QLineEdit(ui->lineEdit->text());
           QWidget * widget0 = new QWidget();
           QHBoxLayout * hboxlayout0 = new QHBoxLayout();
           hboxlayout0->addWidget(lab0);hboxlayout0->addWidget(linewidget0);
@@ -79,6 +77,8 @@ AutoWindow::AutoWindow(QWidget *parent) :
           QString value1 = ui->lineEdit->text();
           qDebug() << value1.toUtf8().data();
           ui->toolBox->addItem(widget,value1);
+          ui->toolBox->setCurrentIndex(1);
+          ui->btnnew->hide();
           ui->frame->hide();
           ui->lineEdit->clear();
     });
@@ -144,13 +144,11 @@ AutoWindow::AutoWindow(QWidget *parent) :
             // 删除页面
             if (this->id != 0) {
                 QString url = ROOT"studyPlan/delete";
-                QJsonObject json;
-                json["id"] = this->id;
-                QJsonDocument jsonDoc(json);
-                QByteArray data = jsonDoc.toJson();
-                sendPostRequest(QUrl(url), data);
+                url += "?id=" + QString::number(this->id);
+                sendGetRequest(QUrl(url));
             }
             toolBox->removeItem(currentIndex);
+            ui->btnnew->show();
         }
             else {
             // 没有选中的选项卡，处理这种情况（如果需要）
@@ -159,10 +157,8 @@ AutoWindow::AutoWindow(QWidget *parent) :
     });
 
     connect(ui->btnReturn, &QPushButton::clicked, [=](){
-        MainWindow * mainwindow = new MainWindow();
-        mainwindow->setUser(this->user);
-        mainwindow->show();
-        this->close();
+        QString url = ROOT"/studyPlan/getAll";
+        sendGetRequest(QUrl(url));
     });
 
     connect(ui->btncheck,&QPushButton::clicked,[=](){
@@ -173,13 +169,10 @@ AutoWindow::AutoWindow(QWidget *parent) :
                 QJsonObject json;
                 json["id"] = this->id;
                 json["status"] = 1;
+                json["finish_time"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
                 QJsonDocument jsonDoc(json);
                 QByteArray data = jsonDoc.toJson();
                 sendPostRequest(QUrl(url), data);
-                MainWindow * mainwindow = new MainWindow();
-                mainwindow->setUser(this->user);
-                mainwindow->show();
-                this->close();
             }else {
                 QMessageBox::warning(this, "警告", "当前任务未保存！", QMessageBox::Yes, QMessageBox::Yes);
             }
@@ -193,7 +186,7 @@ void AutoWindow::sendPostRequest(const QUrl &requestedUrl, const QByteArray &dat
     manager = new QNetworkAccessManager(this);
     request.setUrl(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
-    request.setRawHeader("token", user->getToken().toLocal8Bit());
+    request.setRawHeader("token", user.getToken().toLocal8Bit());
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, [=](){
@@ -206,17 +199,69 @@ void AutoWindow::onPostRequestFinished(QNetworkReply *reply)
     int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status_code == 200) {
         QByteArray replyData = reply->readAll();
-        if (!replyData.isEmpty()) {
-            QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData);
-            QJsonObject json = jsonDoc.object();
-            this->setId(json["id"].toInt());
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData);
+        QJsonObject json = jsonDoc.object();
+        if (!json["data"].isNull()) {
+            if (this->id == 0)
+                this->setId(json["data"].toInt());
             this->setMode(0);
-            ui->btnnew->hide();
             QMessageBox::information(this, "信息", "保存成功！", QMessageBox::Yes, QMessageBox::Yes);
         }else{
             QMessageBox::information(this, "信息", "操作成功！", QMessageBox::Yes, QMessageBox::Yes);
+            QString url = ROOT"studyPlan/getAll";
+            sendGetRequest(QUrl(url));
         }
     } else {
+        QMessageBox::warning(this, "警告", "操作失败！", QMessageBox::Yes, QMessageBox::Yes);
+    }
+    reply->deleteLater();
+}
+
+void AutoWindow::sendGetRequest(const QUrl &requestedUrl)
+{
+    url = requestedUrl;
+    manager = new QNetworkAccessManager(this);
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("token", user.getToken().toLocal8Bit());
+    reply = manager->get(request);
+    connect(reply, &QNetworkReply::finished, [=](){
+        onGetRequestFinished(reply);
+    });
+}
+
+void AutoWindow::onGetRequestFinished(QNetworkReply *reply)
+{
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200)
+    {
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonObject json = jsonDoc.object();
+        QString msg = json["msg"].toString();
+        if (msg == "getAll") {
+            QJsonArray data = json["data"].toArray();
+            QList<StudyPlan> studyPlans;
+            for (QJsonValue it : data) {
+                StudyPlan studyPlan(
+                    it["id"].toInt(), it["username"].toString(), it["deadline"].toString(),
+                    it["topic"].toString(), it["priority"].toInt(), it["content"].toString(),
+                    it["create_time"].toString(), it["update_time"].toString(),
+                    it["reminder_time"].toString(), it["finish_time"].toString(),
+                    it["status"].toInt()
+                );
+                studyPlans.append(studyPlan);
+            }
+            user.setStudyPlans(&studyPlans);
+            MainWindow * mainwindow = new MainWindow();
+            mainwindow->setUser(this->user);
+            mainwindow->show();
+            this->close();
+        }else if (msg == "delete") {
+            this->mode = 1;
+            this->id = 0;
+            QMessageBox::information(this, "信息", "删除成功！", QMessageBox::Yes, QMessageBox::Yes);
+        }
+    }else {
         QMessageBox::warning(this, "警告", "操作失败！", QMessageBox::Yes, QMessageBox::Yes);
     }
     reply->deleteLater();

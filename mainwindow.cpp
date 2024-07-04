@@ -3,7 +3,7 @@
 #include "loginwindow.h"
 #include "registerwindow.h"
 #include "autowindow.h"
-#include "StudyPlan.h"
+#include "studyplan.h"
 
 #include <QDebug>
 #include <QDate>
@@ -19,8 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tabWidget->setCurrentIndex(0);
     ui->tbUnready->setCurrentIndex(0);
     ui->tbReady->setCurrentIndex(0);
-    QString url = ROOT"/studyPlan/getAll";
-    sendGetRequest(QUrl(url));
     //栈控件使用
     //设置默认定位  主页
     ui->stackedWidget->setCurrentIndex(0);
@@ -63,43 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-void MainWindow::sendGetRequest(const QUrl &requestedUrl)
-{
-    url = requestedUrl;
-    manager = new QNetworkAccessManager(this);
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-    request.setRawHeader("token", user->getToken().toLocal8Bit());
-    reply = manager->get(request);
-    connect(reply, &QNetworkReply::finished, [=](){
-        onGetRequestFinished(reply);
-    });
-}
-
-void MainWindow::onGetRequestFinished(QNetworkReply *reply){
-    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if (status_code == 200)
-    {
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
-        QJsonObject json = jsonDoc.object();
-        QJsonArray data = json["data"].toArray();
-        QList<StudyPlan> studyPlans;
-        for (QJsonValue it : data) {
-            StudyPlan studyPlan(
-                        it["id"].toInt(), it["username"].toString(), it["deadline"].toString(),
-                    it["topic"].toString(), it["priority"].toInt(), it["content"].toString(),
-                    it["create_time"].toString(), it["update_time"].toString(),
-                    it["reminder_time"].toString(), it["finish_time"].toString(),
-                    it["status"].toInt()
-                    );
-            studyPlans.append(studyPlan);
-        }
-        this->getUser()->setStudyPlans(studyPlans);
-    }else {
-        ;
-    }
-}
-
 void MainWindow::updatePage2()
 {
     QToolBox *tb1 = ui->tbUnready;
@@ -107,10 +68,10 @@ void MainWindow::updatePage2()
         tb1->removeItem(i);
     }
     QToolBox *tb2 = ui->tbReady;
-    for (int i = 0; i < tb1->count(); i++) {
+    for (int i = 0; i < tb2->count(); i++) {
         tb2->removeItem(i);
     }
-    QList<StudyPlan> studyPlans = this->getUser()->getStudyPlans();
+    QList<StudyPlan> studyPlans = this->getUser().getStudyPlans();
     for (StudyPlan i : studyPlans) {
         int id = i.getId();
         int status = i.getStatus();
@@ -170,20 +131,55 @@ void MainWindow::updatePage2()
             QTextBrowser *textBrowser = new QTextBrowser();
             textBrowser->append(content);
 
+            QPushButton *btn = new QPushButton("删除任务");
+
             vboxLayout->addWidget(widget1);
             vboxLayout->addWidget(lab2);
             vboxLayout->addWidget(textBrowser);
+            vboxLayout->addWidget(btn);
 
             widget->setLayout(vboxLayout);
             QToolBox *tb2 = ui->tbReady;
             tb2->addItem(widget, topic);
+
+            connect(btn, &QPushButton::clicked, [=](){
+                QString url = ROOT"studyPlan/delete";
+                url += "?id=" + QString::number(id);
+                sendGetRequest(QUrl(url));
+            });
         }
     }
 }
 
+void MainWindow::sendGetRequest(const QUrl &requestedUrl)
+{
+    url = requestedUrl;
+    manager = new QNetworkAccessManager(this);
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setRawHeader("token", user.getToken().toLocal8Bit());
+    reply = manager->get(request);
+    connect(reply, &QNetworkReply::finished, [=](){
+        onGetRequestFinished(reply);
+    });
+}
+
+void MainWindow::onGetRequestFinished(QNetworkReply *reply)
+{
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200) {
+        QToolBox *tb = ui->tbReady;
+        tb->removeItem(tb->currentIndex());
+        QMessageBox::information(this, "提示", "删除成功！", QMessageBox::Yes, QMessageBox::Yes);
+    } else {
+        QMessageBox::warning(this, "警告", "删除失败！", QMessageBox::Yes, QMessageBox::Yes);
+    }
+    reply->deleteLater();
+}
+
 void MainWindow::editPlan(int id)
 {
-    QList<StudyPlan> studyPlans = this->getUser()->getStudyPlans();
+    QList<StudyPlan> studyPlans = this->getUser().getStudyPlans();
     StudyPlan *target = NULL;
     for (StudyPlan i : studyPlans) {
         if (i.getId() == id) {
@@ -202,13 +198,63 @@ void MainWindow::editPlan(int id)
 
     QToolBox * box = autoWindow->findChild<QToolBox *>();
 
+    box->removeItem(box->currentIndex());
+    QWidget * widget = new QWidget();
+    QVBoxLayout * vboxlayout = new QVBoxLayout();
+
+    QLabel * lab0 = new QLabel("主题");
+    QLineEdit * linewidget0 = new QLineEdit();
+    QWidget * widget0 = new QWidget();
+    QHBoxLayout * hboxlayout0 = new QHBoxLayout();
+    hboxlayout0->addWidget(lab0);hboxlayout0->addWidget(linewidget0);
+    widget0->setLayout(hboxlayout0);
+
+    QLabel * lab1 = new QLabel("优先级");
+    QLineEdit * linewidget1 = new QLineEdit();
+    QWidget * widget1 = new QWidget();
+    QHBoxLayout * hboxlayout1 = new QHBoxLayout();
+    hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(linewidget1);
+    widget1->setLayout(hboxlayout1);
+
+    QLabel * lab2 = new QLabel("完成时间");
+    QLineEdit * linewidget2 = new QLineEdit();
+    QWidget * widget2 = new QWidget();
+    QHBoxLayout * hboxlayout2 = new QHBoxLayout();
+    hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(linewidget2);
+    widget2->setLayout(hboxlayout2);
+
+    QLabel * lab4 = new QLabel("提醒时间");
+    QLineEdit * linewidget3 = new QLineEdit();
+    QWidget * widget5 = new QWidget();
+    QVBoxLayout * vboxlayout2 = new QVBoxLayout();
+    vboxlayout2->addWidget(lab4);vboxlayout2->addWidget(linewidget3);
+    widget5->setLayout(vboxlayout2);
+
+    QRadioButton * radio = new QRadioButton("需提醒任务");
+    QWidget * widget4 = new QWidget();
+    QHBoxLayout * hboxlayout3 = new QHBoxLayout();
+    hboxlayout3->addWidget(radio);hboxlayout3->addWidget(widget5);
+    widget4->setLayout(hboxlayout3);
+
+
+    QLabel * lab3 = new QLabel("内容");
+
+    vboxlayout->addWidget(widget0);
+    vboxlayout->addWidget(widget1);
+    vboxlayout->addWidget(widget2);
+    vboxlayout->addWidget(widget4);
+    vboxlayout->addWidget(lab3);
+    QTextEdit * textwidget = new QTextEdit();
+    vboxlayout->addWidget(textwidget);
+
+    widget->setLayout(vboxlayout);
+    box->addItem(widget, target->getTopic());
     int currentIndex = box->currentIndex();
-    box->itemText(currentIndex) = target->getTopic();
     QWidget * page = box->widget(currentIndex);
     QRadioButton * radiobtn = page->findChild<QRadioButton *>();
     QList<QLineEdit *> list = autoWindow->findAllLineEdits(page);
     list.at(0)->setText(target->getTopic());
-    list.at(1)->setText(QString(target->getPriority()));
+    list.at(1)->setText(QString::number(target->getPriority()));
     list.at(2)->setText(target->getDeadLine());
     if (target->getReminderTime() != NULL)
     {
@@ -218,7 +264,7 @@ void MainWindow::editPlan(int id)
     QTextEdit * textedit = page->findChild<QTextEdit *>();
     textedit->setText(target->getContent());
     QPushButton *btnnew = autoWindow->findChild<QPushButton *>("btnnew");
-    btnnew->setVisible(false);
+    btnnew->hide();
 
     autoWindow->show();
     this->close();

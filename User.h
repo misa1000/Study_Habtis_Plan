@@ -3,7 +3,7 @@
 
 #define ROOT "http://127.0.0.1:8080/"
 
-#include "StudyPlan.h"
+#include "studyplan.h"
 
 #include <QString>
 #include <QMessageBox>
@@ -16,6 +16,7 @@
 class User {
 
 public:
+    User() {}
     User(QString username, QString token)
     {
         this->username = username;
@@ -23,7 +24,7 @@ public:
     }
 
 public:
-    void setStudyPlans(QList<StudyPlan> studyPlans) {this->studyPlans = studyPlans;}
+    void setStudyPlans(QList<StudyPlan> *studyPlans) {this->studyPlans = *studyPlans;}
     void addStudyPlan(StudyPlan studyPlan) {this->studyPlans.append(studyPlan);}
     QString getUsername() {return this->username;}
     QString getToken() {return this->token;}

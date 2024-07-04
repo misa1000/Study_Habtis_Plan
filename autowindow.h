@@ -21,11 +21,11 @@ public:
     QList<QLineEdit*> findAllLineEdits(QWidget *parent);
 
 public:
-    void setUser(User *user)
+    void setUser(User user)
     {
         this->user = user;
     }
-    User *getUser()
+    User getUser()
     {
         return this->user;
     }
@@ -39,14 +39,16 @@ public:
     }
     void renew();
     void sendPostRequest(const QUrl &requestedUrl, const QByteArray &data);
+    void sendGetRequest(const QUrl &requestedUrl);
 
 private slots:
     void onPostRequestFinished(QNetworkReply *reply);
+    void onGetRequestFinished(QNetworkReply *reply);
 
 private:
     int mode = 0;
     int id = 0;
-    User *user;
+    User user;
     QUrl url;
     QNetworkRequest request;
     QNetworkReply *reply;

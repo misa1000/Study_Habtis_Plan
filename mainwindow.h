@@ -21,11 +21,11 @@ public:
     void editPlan(int id);
 
 public:
-    void setUser(User *user)
+    void setUser(User user)
     {
         this->user = user;
     }
-    User *getUser()
+    User getUser()
     {
         return this->user;
     }
@@ -35,7 +35,7 @@ private slots:
     void onGetRequestFinished(QNetworkReply *reply);
 
 private:
-    User *user;
+    User user;
     QUrl url;
     QNetworkRequest request;
     QNetworkReply *reply;
