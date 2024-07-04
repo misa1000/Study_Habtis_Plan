@@ -23,39 +23,62 @@ AutoWindow::AutoWindow(QWidget *parent) :
         ui->frame->show();
     });
     connect(ui->btnsure,&QPushButton::clicked,[=](){
-        QWidget * widget = new QWidget();
-        QVBoxLayout * vboxlayout = new QVBoxLayout();
+          QWidget * widget = new QWidget();
+          QVBoxLayout * vboxlayout = new QVBoxLayout();
 
-        QLabel * lab1 = new QLabel("优先级");
-        QLineEdit * linewidget1 = new QLineEdit();
-        QWidget * widget1 = new QWidget();
-        QHBoxLayout * hboxlayout1 = new QHBoxLayout();
-        hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(linewidget1);
-        widget1->setLayout(hboxlayout1);
+          QLabel * lab0 = new QLabel("主题");
+          QLineEdit * linewidget0 = new QLineEdit();
+          QWidget * widget0 = new QWidget();
+          QHBoxLayout * hboxlayout0 = new QHBoxLayout();
+          hboxlayout0->addWidget(lab0);hboxlayout0->addWidget(linewidget0);
+          widget0->setLayout(hboxlayout0);
 
-        QLabel * lab2 = new QLabel("完成时间");
-        QLineEdit * linewidget2 = new QLineEdit();
-        QWidget * widget2 = new QWidget();
-        QHBoxLayout * hboxlayout2 = new QHBoxLayout();
-        hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(linewidget2);
-        widget2->setLayout(hboxlayout2);
+          QLabel * lab1 = new QLabel("优先级");
+          QLineEdit * linewidget1 = new QLineEdit();
+          QWidget * widget1 = new QWidget();
+          QHBoxLayout * hboxlayout1 = new QHBoxLayout();
+          hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(linewidget1);
+          widget1->setLayout(hboxlayout1);
 
-        QLabel * lab3 = new QLabel("主题");
+          QLabel * lab2 = new QLabel("完成时间");
+          QLineEdit * linewidget2 = new QLineEdit();
+          QWidget * widget2 = new QWidget();
+          QHBoxLayout * hboxlayout2 = new QHBoxLayout();
+          hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(linewidget2);
+          widget2->setLayout(hboxlayout2);
 
-        vboxlayout->addWidget(widget1);
-        vboxlayout->addWidget(widget2);
-        vboxlayout->addWidget(lab3);
-        QTextEdit * textwidget = new QTextEdit();
-        vboxlayout->addWidget(textwidget);
+          QLabel * lab4 = new QLabel("提醒时间");
+          QLineEdit * linewidget3 = new QLineEdit();
+          QWidget * widget5 = new QWidget();
+          QVBoxLayout * vboxlayout2 = new QVBoxLayout();
+          vboxlayout2->addWidget(lab4);vboxlayout2->addWidget(linewidget3);
+          widget5->setLayout(vboxlayout2);
 
-        widget->setLayout(vboxlayout);
+          QRadioButton * radio = new QRadioButton("需提醒任务");
+          QWidget * widget4 = new QWidget();
+          QHBoxLayout * hboxlayout3 = new QHBoxLayout();
+          hboxlayout3->addWidget(radio);hboxlayout3->addWidget(widget5);
+          widget4->setLayout(hboxlayout3);
 
-        //添加一个新的item到QToolBox中
-        QString value1 = ui->lineEdit->text();
-        qDebug() << value1.toUtf8().data();
-        ui->toolBox->addItem(widget,value1);
-        ui->frame->hide();
-        ui->lineEdit->clear();
+
+          QLabel * lab3 = new QLabel("内容");
+
+          vboxlayout->addWidget(widget0);
+          vboxlayout->addWidget(widget1);
+          vboxlayout->addWidget(widget2);
+          vboxlayout->addWidget(widget4);
+          vboxlayout->addWidget(lab3);
+          QTextEdit * textwidget = new QTextEdit();
+          vboxlayout->addWidget(textwidget);
+
+          widget->setLayout(vboxlayout);
+
+          //添加一个新的item到QToolBox中
+          QString value1 = ui->lineEdit->text();
+          qDebug() << value1.toUtf8().data();
+          ui->toolBox->addItem(widget,value1);
+          ui->frame->hide();
+          ui->lineEdit->clear();
     });
 
     connect(ui->btnclose,&QPushButton::clicked,[=](){
@@ -64,26 +87,48 @@ AutoWindow::AutoWindow(QWidget *parent) :
     connect(ui->btnsave,&QPushButton::clicked,[=](){
         QToolBox * toolBox = ui->toolBox;/* 获取你的 QToolBox 指针 */
         int currentIndex = toolBox->currentIndex();
+        QWidget * currentWidget = toolBox->widget(currentIndex);
+        // 现在你可以对 currentWidget 进行操作了
+        QList<QLineEdit *> list = findAllLineEdits(currentWidget);
+        QLineEdit * text0 = list.at(0);
+        QString topic = text0->text();
         // 检查是否有选中的选项卡
-        if (currentIndex != -1) {
-            QWidget * currentWidget = toolBox->widget(currentIndex);
-            // 现在你可以对 currentWidget 进行操作了
-            QList<QLineEdit *> list = findAllLineEdits(currentWidget);
+        if ((currentIndex != -1) && (topic != "示例任务")) {
 
-            QLineEdit * text1 = list.at(0);
-            QString valuea = text1->text();
-            qDebug() << valuea.toUtf8().data();
+            QLineEdit * text1 = list.at(1);
+            QString value = text1->text();
+            int priority = value.toInt();
 
-            QLineEdit * text2 = list.at(1);
-            QString valueb = text2->text();
-            qDebug() << valueb.toUtf8().data();
+            QLineEdit * text2 = list.at(2);
+            QString deadline = text2->text();
+
+            QLineEdit * text3 = list.at(3);
+            QString reminderTime = text3->text();
 
             QTextEdit * text = currentWidget->findChild<QTextEdit *>();
-            QString value1 = text->toPlainText();
-            qDebug() << value1.toUtf8().data();
+            QString content = text->toPlainText();
 
+            QRadioButton * isneed = currentWidget->findChild<QRadioButton *>();
+
+            QString url = NULL;
+            QJsonObject json;
+            if (this->mode == 0){
+                url = ROOT"/studyPlan/update";
+                json["id"] = this->id;
+            }
+            else
+                url = ROOT"/studyPlan/add";
+            json["topic"] = topic;
+            json["priority"] = priority;
+            json["deadline"] = deadline;
+            if (isneed->isChecked())
+                json["reminderTime"] = reminderTime;
+            json["content"] = content;
+            QJsonDocument jsonDoc(json);
+            QByteArray data = jsonDoc.toJson();
+            sendPostRequest(QUrl(url), data);
         } else {
-            // 没有选中的选项卡，处理这种情况（如果需要）
+            QMessageBox::warning(this, "警告", "当前无任务选项！", QMessageBox::Yes, QMessageBox::Yes);
         }
 
     });
@@ -109,18 +154,35 @@ AutoWindow::AutoWindow(QWidget *parent) :
         this->close();
     });
 
-    connect(ui->btnsss,&QPushButton::clicked,[=](){
-        QRadioButton * isclock = ui->radioButton;
-        QRadioButton * isfinish = ui->radioButton_2;
-        qDebug()<<isclock->isChecked();
-        qDebug()<<isfinish->isChecked();
+    connect(ui->btncheck,&QPushButton::clicked,[=](){
+        QMessageBox::StandardButton result = QMessageBox::question(this, "提示", "是否确认完成", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+        if(result ==  QMessageBox::Yes){
+            qDebug()<<"完成";
+        }
     });
-
 }
 
-AutoWindow::~AutoWindow()
+void AutoWindow::sendPostRequest(const QUrl &requestedUrl, const QByteArray &data)
 {
-    delete ui;
+    url = requestedUrl;
+    manager = new QNetworkAccessManager(this);
+    request.setUrl(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    reply = manager->post(request, data);
+    connect(reply, &QNetworkReply::finished, [=](){
+        onPostRequestFinished(reply);
+    });
+}
+
+void AutoWindow::onPostRequestFinished(QNetworkReply *reply)
+{
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200) {
+        QMessageBox::information(this, "信息", "保存成功！", QMessageBox::Yes, QMessageBox::Yes);
+    } else {
+        QMessageBox::warning(this, "警告", "保存失败！", QMessageBox::Yes, QMessageBox::Yes);
+    }
 }
 
 QList<QLineEdit*> AutoWindow :: findAllLineEdits(QWidget *parent) {
@@ -144,3 +206,10 @@ QList<QLineEdit*> AutoWindow :: findAllLineEdits(QWidget *parent) {
 
     return lineEdits;
 }
+
+
+AutoWindow::~AutoWindow()
+{
+    delete ui;
+}
+

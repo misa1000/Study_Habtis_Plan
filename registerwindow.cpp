@@ -12,24 +12,34 @@ RegisterWindow::RegisterWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->lineEdit->setValidator(new QRegExpValidator(QRegExp("[\u4e00-\u9fa5]{1,6}")));
-    ui->lineEdit_2->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]{9}")));
-    ui->lineEdit_3->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]{9}")));
+    ui->lineEdit->setValidator(new QRegExpValidator(QRegExp("[\u4e00-\u9fa5_a-zA-Z0-9_]{3,10}")));
+    ui->lineEdit_2->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]{4,9}")));
+    ui->lineEdit_3->setValidator(new QRegExpValidator(QRegExp("[a-zA-Z0-9]{4,9}")));
 
     connect(ui->pushButton,&QPushButton::clicked, [=](){
         QString value1 = ui->lineEdit->text();
         QString value2 = ui->lineEdit_2->text();
         QString value3 = ui->lineEdit_3->text();
-        if(value2 == value3){
-            QString url = ROOT"user/register";
-            QJsonObject json;
-            json["username"] = value1;
-            json["password"] = value2;
-            QJsonDocument jsonDoc(json);
-            QByteArray data = jsonDoc.toJson();
-            sendPostRequest(QUrl(url), data);
+        if ((value1.length() >= 3) && (value1.length() <= 10))
+        {
+            if(value2 == value3){
+                if ((value2.length() >= 4) && (value2.length() <= 9))
+                {
+                    QString url = ROOT"user/register";
+                    QJsonObject json;
+                    json["username"] = value1;
+                    json["password"] = value2;
+                    QJsonDocument jsonDoc(json);
+                    QByteArray data = jsonDoc.toJson();
+                    sendPostRequest(QUrl(url), data);
+                }else{
+                    QMessageBox::warning(this, "警告", "密码长度应在4~9个字符之间！", QMessageBox::Yes, QMessageBox::Yes);
+                }
+            }else{
+                QMessageBox::warning(this, "警告", "密码不一致，请重新输入！", QMessageBox::Yes, QMessageBox::Yes);
+            }
         }else{
-            QMessageBox::warning(this, "警告", "密码不一致，请重新输入！", QMessageBox::Yes, QMessageBox::Yes);
+            QMessageBox::warning(this, "警告", "用户名长度应在3~10个字符之间！", QMessageBox::Yes, QMessageBox::Yes);
         }
     });
 
@@ -64,11 +74,7 @@ void RegisterWindow::onPostRequestFinished(QNetworkReply *reply)
     int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status_code == 200) {
         QMessageBox::information(this, "信息", "注册成功！", QMessageBox::Yes, QMessageBox::Yes);
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
-        QJsonObject json = jsonDoc.object();
-        User user(json["username"].toString(), json["password"].toString(), json["token"].toString());
         LoginWindow * loginwindow = new LoginWindow();
-        loginwindow->setUser(&user);
         loginwindow->show();
         this->close();
     } else {

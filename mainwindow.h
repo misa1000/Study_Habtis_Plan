@@ -17,10 +17,22 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void activatedChanged(const QDate date);
+    void updatePage2();
+    void editPlan(int id);
+
+public:
     void setUser(User *user)
     {
         this->user = user;
     }
+    User *getUser()
+    {
+        return this->user;
+    }
+    void sendGetRequest(const QUrl &requestedUrl);
+
+private slots:
+    void onGetRequestFinished(QNetworkReply *reply);
 
 private:
     User *user;

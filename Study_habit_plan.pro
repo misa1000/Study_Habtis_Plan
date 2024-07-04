@@ -27,6 +27,7 @@ HEADERS += \
     loginwindow.h \
     mainwindow.h \
     registerwindow.h \
+    studyplan.h \
     user.h
 
 FORMS += \

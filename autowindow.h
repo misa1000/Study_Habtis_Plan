@@ -19,12 +19,29 @@ public:
     explicit AutoWindow(QWidget *parent = nullptr);
     ~AutoWindow();
     QList<QLineEdit*> findAllLineEdits(QWidget *parent);
+
+public:
     void setUser(User *user)
     {
         this->user = user;
     }
+    void setId(int id)
+    {
+        this->id = id;
+    }
+    void setMode(int mode)
+    {
+        this->mode = mode;
+    }
+    void renew();
+    void sendPostRequest(const QUrl &requestedUrl, const QByteArray &data);
+
+private slots:
+    void onPostRequestFinished(QNetworkReply *reply);
 
 private:
+    int mode = 0;
+    int id;
     User *user;
     QUrl url;
     QNetworkRequest request;

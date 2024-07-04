@@ -3,40 +3,46 @@
 
 #define ROOT "http://127.0.0.1:8080/"
 
+#include "StudyPlan.h"
+
 #include <QString>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 class User {
 
 public:
-    User(QString username, QString password, QString token)
+    User(QString username, QString token)
     {
         this->username = username;
-        this->password = password;
         this->token = token;
     }
 
 public:
+    void setStudyPlans(QList<StudyPlan> studyPlans){
+        this->studyPlans = studyPlans;
+    }
     QString getUsername()
     {
         return this->username;
-    }
-    QString getPassword()
-    {
-        return this->password;
     }
     QString getToken()
     {
         return this->token;
     }
+    QList<StudyPlan> getStudyPlans()
+    {
+        return this->studyPlans;
+    }
 
 private:
-    QString username, password;
+    QString username;
     QString token;
+    QList<StudyPlan> studyPlans;
 };
 
 #endif // USER_H
