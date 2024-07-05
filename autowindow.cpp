@@ -12,6 +12,8 @@
 #include <QList>
 #include <QRadioButton>
 #include <QTimer>
+#include <QSpinBox>
+#include <QDateTimeEdit>
 
 AutoWindow::AutoWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -34,17 +36,20 @@ AutoWindow::AutoWindow(QWidget *parent) :
           widget0->setLayout(hboxlayout0);
 
           QLabel * lab1 = new QLabel("优先级");
-          QLineEdit * linewidget1 = new QLineEdit();
+          QSpinBox *sb = new QSpinBox();
+          sb->setRange(1, 10);
           QWidget * widget1 = new QWidget();
           QHBoxLayout * hboxlayout1 = new QHBoxLayout();
-          hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(linewidget1);
+          hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(sb);
           widget1->setLayout(hboxlayout1);
 
           QLabel * lab2 = new QLabel("完成时间");
-          QLineEdit * linewidget2 = new QLineEdit();
+          QDateTimeEdit *dte = new QDateTimeEdit();
+          dte->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
+          dte->setDateTime(QDateTime::currentDateTime());
           QWidget * widget2 = new QWidget();
           QHBoxLayout * hboxlayout2 = new QHBoxLayout();
-          hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(linewidget2);
+          hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(dte);
           widget2->setLayout(hboxlayout2);
 
           QLabel * lab4 = new QLabel("提醒时间");
@@ -75,7 +80,6 @@ AutoWindow::AutoWindow(QWidget *parent) :
 
           //添加一个新的item到QToolBox中
           QString value1 = ui->lineEdit->text();
-          qDebug() << value1.toUtf8().data();
           ui->toolBox->addItem(widget,value1);
           ui->toolBox->setCurrentIndex(1);
           ui->btnnew->hide();
@@ -97,12 +101,11 @@ AutoWindow::AutoWindow(QWidget *parent) :
         // 检查是否有选中的选项卡
         if ((currentIndex != -1) && (topic != "示例任务")) {
 
-            QLineEdit * text1 = list.at(1);
-            QString value = text1->text();
-            int priority = value.toInt();
+            QSpinBox *sb = currentWidget->findChild<QSpinBox *>();
+            int priority = sb->value();
 
-            QLineEdit * text2 = list.at(2);
-            QString deadline = text2->text();
+            QDateTimeEdit *dte = currentWidget->findChild<QDateTimeEdit *>();
+            QString deadline = dte->dateTime().toString("yyyy-MM-dd HH:mm:ss");
 
             QLineEdit * text3 = list.at(3);
             QString reminderTime = text3->text();
@@ -165,11 +168,11 @@ AutoWindow::AutoWindow(QWidget *parent) :
         QMessageBox::StandardButton result = QMessageBox::question(this, "提示", "是否确认完成", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
         if(result ==  QMessageBox::Yes){
             if (this->id != 0) {
-                QString url = ROOT"studyPlan/update";
+                QString url = ROOT"studyPlan/finish";
                 QJsonObject json;
                 json["id"] = this->id;
                 json["status"] = 1;
-                json["finish_time"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+                json["finishTime"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
                 QJsonDocument jsonDoc(json);
                 QByteArray data = jsonDoc.toJson();
                 sendPostRequest(QUrl(url), data);
@@ -201,15 +204,20 @@ void AutoWindow::onPostRequestFinished(QNetworkReply *reply)
         QByteArray replyData = reply->readAll();
         QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData);
         QJsonObject json = jsonDoc.object();
-        if (!json["data"].isNull()) {
+        QString msg = json["msg"].toString();
+        if (msg == "add") {
             if (this->id == 0)
                 this->setId(json["data"].toInt());
             this->setMode(0);
             QMessageBox::information(this, "信息", "保存成功！", QMessageBox::Yes, QMessageBox::Yes);
         }else{
-            QMessageBox::information(this, "信息", "操作成功！", QMessageBox::Yes, QMessageBox::Yes);
-            QString url = ROOT"studyPlan/getAll";
-            sendGetRequest(QUrl(url));
+            if (msg == "finish") {
+                QMessageBox::information(this, "信息", "打卡完成成功！", QMessageBox::Yes, QMessageBox::Yes);
+                QString url = ROOT"studyPlan/getAll";
+                sendGetRequest(QUrl(url));
+            }else {
+                QMessageBox::information(this, "信息", "编辑成功！", QMessageBox::Yes, QMessageBox::Yes);
+            }
         }
     } else {
         QMessageBox::warning(this, "警告", "操作失败！", QMessageBox::Yes, QMessageBox::Yes);

@@ -10,6 +10,8 @@
 #include <QCalendarWidget>
 #include <QPainter>
 #include <QRadioButton>
+#include <QSpinBox>
+#include <QDateTimeEdit>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -19,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tabWidget->setCurrentIndex(0);
     ui->tbUnready->setCurrentIndex(0);
     ui->tbReady->setCurrentIndex(0);
+    ui->helloLabel->setText("你好");
     //栈控件使用
     //设置默认定位  主页
     ui->stackedWidget->setCurrentIndex(0);
@@ -149,6 +152,8 @@ void MainWindow::updatePage2()
             });
         }
     }
+    QString url = ROOT"studyPlan/getRecommend";
+    sendGetRequest(QUrl(url));
 }
 
 void MainWindow::sendGetRequest(const QUrl &requestedUrl)
@@ -168,13 +173,98 @@ void MainWindow::onGetRequestFinished(QNetworkReply *reply)
 {
     int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status_code == 200) {
-        QToolBox *tb = ui->tbReady;
-        tb->removeItem(tb->currentIndex());
-        QMessageBox::information(this, "提示", "删除成功！", QMessageBox::Yes, QMessageBox::Yes);
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonObject json = jsonDoc.object();
+        QString msg = json["msg"].toString();
+        if (msg == "getRecommend") {
+            QJsonArray data = json["data"].toArray();
+            QTextBrowser *first = ui->firstTb;
+            QTextBrowser *second = ui->secondTb;
+            first->clear();
+            second->clear();
+            first->append("系统推荐任务-1：\n");
+            second->append("系统推荐任务-2：\n");
+            if (data.size() >= 1) {
+                QJsonValue data1 = data[0];
+                first->append("主题：" + data1["topic"].toString() + "\n");
+                first->append("优先级：" + QString::number(data1["priority"].toInt()) + "\n");
+                first->append("截止时间：" + data1["deadline"].toString() + "\n");
+                first->append("内容：" + data1["content"].toString());
+                if (data.size() == 2) {
+                    QJsonValue data2 = data[1];
+                    second->append("主题：" + data2["topic"].toString() + "\n");
+                    second->append("优先级：" + QString::number(data2["priority"].toInt()) + "\n");
+                    second->append("截止时间：" + data2["deadline"].toString() + "\n");
+                    second->append("内容：" + data2["content"].toString());
+                }else {
+                    second->append("暂无可推荐任务");
+                }
+            }else {
+                first->append("暂无可推荐任务");
+                second->append("暂无可推荐任务");
+            }
+        }else if (msg == "delete"){
+            QToolBox *tb = ui->tbReady;
+            tb->removeItem(tb->currentIndex());
+            QMessageBox::information(this, "提示", "删除成功！", QMessageBox::Yes, QMessageBox::Yes);
+        }
     } else {
         QMessageBox::warning(this, "警告", "删除失败！", QMessageBox::Yes, QMessageBox::Yes);
     }
     reply->deleteLater();
+}
+
+void MainWindow::sendPostRequest(const QUrl &requestedUrl, const QByteArray &data)
+{
+    url = requestedUrl;
+    manager = new QNetworkAccessManager(this);
+    request.setUrl(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+    request.setRawHeader("token", user.getToken().toLocal8Bit());
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    reply = manager->post(request, data);
+    connect(reply, &QNetworkReply::finished, [=](){
+        onPostRequestFinished(reply);
+    });
+}
+
+void MainWindow::onPostRequestFinished(QNetworkReply *reply)
+{
+    int status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status_code == 200) {
+        QTextBrowser *dateLog = ui->dateLog;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(reply->readAll());
+        QJsonObject json = jsonDoc.object();
+        QJsonArray data = json["data"].toArray();
+        if (data.isEmpty())
+            dateLog->setHtml("<h>当日无已打卡任务<h>");
+        else{
+            for (QJsonValue i : data) {
+                if (i["status"].toInt() == 1) {
+                    QString topic = i["topic"].toString();
+                    QString finish_time = i["finishTime"].toString();
+                    dateLog->append(finish_time + " 已打卡完成：" + topic + "\n");
+                }
+            }
+        }
+    } else {
+        QMessageBox::warning(this, "警告", "日期请求错误！", QMessageBox::Yes, QMessageBox::Yes);
+    }
+    reply->deleteLater();
+}
+
+//双击信号  日期触发
+void MainWindow::activatedChanged(const QDate date)
+{
+    QTextBrowser *tb = ui->dateLog;
+    tb->clear();
+    QString url = ROOT"studyPlan/getByFinishTime";
+    QString dateStr = date.toString("yyyy-MM-dd");
+    QJsonObject json;
+    json["Time"] = dateStr;
+    QJsonDocument jsonDoc(json);
+    QByteArray data = jsonDoc.toJson();
+    sendPostRequest(QUrl(url), data);
 }
 
 void MainWindow::editPlan(int id)
@@ -210,17 +300,19 @@ void MainWindow::editPlan(int id)
     widget0->setLayout(hboxlayout0);
 
     QLabel * lab1 = new QLabel("优先级");
-    QLineEdit * linewidget1 = new QLineEdit();
+    QSpinBox *sb = new QSpinBox();
+    sb->setRange(1, 10);
     QWidget * widget1 = new QWidget();
     QHBoxLayout * hboxlayout1 = new QHBoxLayout();
-    hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(linewidget1);
+    hboxlayout1->addWidget(lab1);hboxlayout1->addWidget(sb);
     widget1->setLayout(hboxlayout1);
 
     QLabel * lab2 = new QLabel("完成时间");
-    QLineEdit * linewidget2 = new QLineEdit();
+    QDateTimeEdit *dte = new QDateTimeEdit();
+    dte->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
     QWidget * widget2 = new QWidget();
     QHBoxLayout * hboxlayout2 = new QHBoxLayout();
-    hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(linewidget2);
+    hboxlayout2->addWidget(lab2);hboxlayout2->addWidget(dte);
     widget2->setLayout(hboxlayout2);
 
     QLabel * lab4 = new QLabel("提醒时间");
@@ -254,8 +346,8 @@ void MainWindow::editPlan(int id)
     QRadioButton * radiobtn = page->findChild<QRadioButton *>();
     QList<QLineEdit *> list = autoWindow->findAllLineEdits(page);
     list.at(0)->setText(target->getTopic());
-    list.at(1)->setText(QString::number(target->getPriority()));
-    list.at(2)->setText(target->getDeadLine());
+    sb->setValue(target->getPriority());
+    dte->setDateTime(QDateTime::fromString(target->getDeadLine(), "yyyy-MM-dd HH:mm:ss"));
     if (target->getReminderTime() != NULL)
     {
         radiobtn->setChecked(true);
@@ -268,12 +360,6 @@ void MainWindow::editPlan(int id)
 
     autoWindow->show();
     this->close();
-}
-
-//双击信号  日期触发
-void MainWindow::activatedChanged(const QDate date)
-{
-    qDebug()<< "点击信号：" << date;
 }
 
 MainWindow::~MainWindow()

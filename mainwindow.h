@@ -30,9 +30,11 @@ public:
         return this->user;
     }
     void sendGetRequest(const QUrl &requestedUrl);
+    void sendPostRequest(const QUrl &requestedUrl, const QByteArray &data);
 
 private slots:
     void onGetRequestFinished(QNetworkReply *reply);
+    void onPostRequestFinished(QNetworkReply *reply);
 
 private:
     User user;
